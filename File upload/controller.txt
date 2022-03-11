@@ -1,0 +1,13 @@
+import { Controller, Post, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { storage } from 'src/config/storage.config';
+@Controller()
+export class HelperController {
+
+    @Post("file-upload") // API path
+    @UseInterceptors(FilesInterceptor("file", 20, { storage }))
+    async upload(@UploadedFiles() file) {
+        return file;
+    }
+
+}
