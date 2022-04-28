@@ -1,0 +1,87 @@
+import { Module, DynamicModule, CacheModule } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { HelperService } from './helper/helper.service';
+import { HelperModule } from './helper/helper.module';
+import { UsersModule } from './users/users.module';
+import { DatabaseModule } from './config/database.module';
+// import MongooseModule, { DatabaseProviders } from './config/database.provider';
+import configuration from './config/configuration';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { EventsModule } from './events-user/events.module';
+import { HttpModule } from '@nestjs/axios';
+import { ApiModule } from './api/api.module';
+import { JwtAuthGuard } from './config/auth-guard';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+import { ViewsReactModule } from './views-react/views-react.module';
+import { AdminModule } from './admin/admin.module';
+import { RolesGuard } from './guards/roles.guards';
+import { AdminPackagesModule } from './admin-packages/admin-packages.module';
+import { EventsModule } from './events/events.module';
+import { CategoriesModule } from './categories/categories.module';
+import { ForumModule } from './forum/forum.module';
+import { SocketModule } from './socket/socket.module';
+import { NotificationModule } from './notification/notification.module';
+import { MediaModule } from './media/media.module';
+import { DashboardModule } from './admin-portal/dashboard/dashboard.module';
+import { EventManagementModule } from './admin-portal/event-management/event-management.module';
+// import { EventsModule } from './admin-portal/events/events.module';
+// import { OnesignalModule } from './onesignal/onesignal/onesignal.module';
+import { OnesignalModule } from './onesignal/onesignal.module';
+
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      ignoreEnvFile: false,
+      load: [configuration],
+      envFilePath: `${process.cwd()}/${process.env.NODE_ENV}.env`,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    }),
+    DatabaseModule,
+    CacheModule.register({ isGlobal: true }),
+    HttpModule.register({
+      timeout: 5000,
+      maxRedirects: 5,
+    }),
+    UsersModule,
+    AuthModule,
+    HelperModule,
+    EventsModule,
+    ApiModule,
+    ViewsReactModule,
+    AdminModule,
+    AdminPackagesModule,
+    CategoriesModule,
+    ForumModule,
+    SocketModule,
+    NotificationModule,
+    MediaModule,
+    DashboardModule,
+    EventManagementModule,
+    OnesignalModule
+  ],
+  controllers: [AppController ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useFactory: (ref) => new JwtAuthGuard(ref),
+      inject: [Reflector],
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    AppService,
+    HelperService,
+   
+  ],
+})
+export class AppModule {}
